@@ -1,8 +1,9 @@
 # API Gateway
 
 - Allows us to create REST APIs which are accessible by the clients
-- AWS Lambda + API Gateway: No infrastructure to manage
-- API Gateway provides support for WebSocket Protocol
+- AWS Lambda + API Gateway
+  - No infrastructure to manage
+- API Gateway provides support for **WebSocket Protocol**
 - It handles API versioning (v1, v2, etc.)
 - It handles different environment (dev, tets, prod)
 - It handles security (authentication and authorization)
@@ -11,6 +12,27 @@
 - It can transform and validate requests and responses
 - We can generate SDK and API specifications
 - We can cache API responses
+- **Any AWS service can be exposed by a API-Gateway**
+
+### Serverless REST API Pattern
+
+```mermaid
+flowchart LR
+    Client[Client Application]
+    APIGW[Amazon API Gateway]
+    Lambda[AWS Lambda]
+    DDB[Amazon DynamoDB]
+
+    Client <--> |REST API| APIGW
+    APIGW <--> |Proxy Requests| Lambda
+    Lambda <--> |CRUD Operations| DDB
+```
+
+- API Gateway exposes REST endpoints.
+- API Gateway forwards requests to Lambda.
+- Lambda contains the business logic.
+- DynamoDB stores application data.
+- Common serverless architecture pattern on AWS.
 
 ## API Gateway - Integrations
 
@@ -21,6 +43,56 @@
     - Exposes HTTP endpoints in the back-end. Example: internal HTTP API on premise, Application Load Balancer, etc. By this we can add features like rate limiting, user authentication, API keys to existing back-ends
 - AWS Service
     - We can expose any AWS API through API Gateway, examples: API for starting a Step Function workflow, API for posting a message to SQS
+
+## API Gateway vs ALB
+
+| API Gateway | ALB |
+|------------|-----|
+| API Management | Load Balancing |
+| API Keys | Distributes traffic across EC2/ECS |
+| Throttling / Quotas | Host & Path Routing |
+| Authentication (IAM, Cognito, JWT) | High-throughput HTTP traffic |
+| Native Lambda integration | Ideal for multiple servers |
+
+### Rule of Thumb
+
+- Need **API keys, authentication, throttling, or quotas** → **API Gateway**
+- Need **traffic distribution across multiple servers or containers** → **ALB**
+
+### Typical Architectures
+
+#### ALB Only (Most Common for EC2)
+
+```mermaid
+flowchart LR
+    Client --> ALB[Application Load Balancer]
+    ALB --> EC2A[EC2 A]
+    ALB --> EC2B[EC2 B]
+    ALB --> EC2C[EC2 C]
+```
+
+#### API Gateway + ALB
+
+```mermaid
+flowchart LR
+    Client --> APIGW[API Gateway]
+    APIGW --> ALB[Application Load Balancer]
+    ALB --> EC2A[EC2 A]
+    ALB --> EC2B[EC2 B]
+```
+
+### Use API Gateway in Front of an ALB When You Need
+
+- API Keys
+- Authentication
+- Request Throttling
+- Usage Plans / Quotas
+- Centralized API Management
+
+### AWS Exam Tip
+
+> **Load balancing?** → ALB  
+> **API management?** → API Gateway
 
 ## Endpoint Types
 
